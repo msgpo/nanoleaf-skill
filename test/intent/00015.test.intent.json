@@ -1,0 +1,4 @@
+{
+  "utterance": "turn the wall light off",
+  "expected_dialog": "light.off"
+}

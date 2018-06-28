@@ -1,0 +1,24 @@
+{
+    "name": "NanoLeaf Aurora",
+    "skillMetadata": {
+        "sections": [
+            {
+                "name": "Settings",
+                "fields": [
+                    {
+                        "name": "ipstring",
+                        "type": "text",
+                        "label": "Ip Address of the NanoLeaf Aurora",
+                        "value": "127.0.0.1"
+                    },
+                    {
+                        "name": "tokenstring",
+                        "type": "text",
+                        "label": "The API Token for your NanoLeaf Aurora",
+                        "value": "Giy5cjAg9paQ1W6rBAnhCl6ITaBLGrJU"
+                    }
+                ]
+            }
+        ]
+    }
+}

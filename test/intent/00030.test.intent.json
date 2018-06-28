@@ -1,0 +1,4 @@
+{
+  "utterance": "dim the wall light off",
+  "expected_dialog": "light.dim"
+}
