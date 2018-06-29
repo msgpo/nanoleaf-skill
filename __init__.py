@@ -25,8 +25,6 @@ __author__ = 'PCWii'
 LOGGER = getLogger(__name__)
 
 # List each of the bulbs here
-seq_delay = 0.5
-effect_delay = 3000
 
 Valid_Color = ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet', 'purple', 'white']
 
@@ -38,6 +36,9 @@ class NanoLeafSkill(MycroftSkill):
     # The constructor of the skill, which calls MycroftSkill's constructor
     def __init__(self):
         super(NanoLeafSkill, self).__init__(name="NanoLeafSkill")
+        self.settings["ipstring"] = ""
+        self.settings["tokenstring"] = ""
+        self._is_setup = False
 
     # This method loads the files needed for the skill's functioning, and
     # creates and registers each intent that the skill uses
