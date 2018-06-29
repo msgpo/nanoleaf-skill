@@ -138,9 +138,6 @@ class NanoLeafSkill(MycroftSkill):
                 myRed = math.trunc(Color(findcolor).get_red() * 255)
                 myGreen = math.trunc(Color(findcolor).get_green() * 255)
                 myBlue = math.trunc(Color(findcolor).get_blue() * 255)
-                bulbLHS.set_rgb(myRed, myGreen, myBlue)
-                sleep(seq_delay)
-                bulbRHS.set_rgb(myRed, myGreen, myBlue)
                 self.speak_dialog("light.set", data ={"result": findcolor})
                 break
         dim_level = re.findall('\d+', str_remainder)
