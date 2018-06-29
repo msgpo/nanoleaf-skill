@@ -93,6 +93,7 @@ class NanoLeafSkill(MycroftSkill):
                 LOG.error(e)
 
     def handle_nano_leaf_get_token_intent(self, message):
+        #To generate an auth token, you must first press and hold the power button on the Aurora for about 5-7 seconds, until the white LED flashes briefly.
         iniFile = "kelsey.ini"
         cfgfile = open(iniFile, 'w')
         try:
@@ -109,8 +110,10 @@ class NanoLeafSkill(MycroftSkill):
         kelsey_ini.set('Aurora', 'Time', tokenTime)
         kelsey_ini.write(cfgfile)
         cfgfile.close()
-        self.settins.set('tokenstring', str(token) )
 
+        self.settins.set('tokenstring', str(token) )
+        if token != "Not Found":
+            self.speak('I have retrieved a new token')
 
     def handle_nano_leaf_on_intent(self, message):
         MyPanels = Aurora(IPstring, tokenString)
