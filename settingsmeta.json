@@ -6,6 +6,10 @@
                 "name": "Settings",
                 "fields": [
                     {
+                        "type": "label",
+                        "label": "Enter the IP Address of your Nanoleaf Aurora. To generate an API Token, you must first press and hold the power button on the Aurora for about 5-7 seconds, until the white LED flashes briefly. Next Ask Mycroft.AI to retrieve the NanoLeaf Token."
+                    },
+                    {
                         "name": "ipstring",
                         "type": "text",
                         "label": "Ip Address of the NanoLeaf Aurora",
