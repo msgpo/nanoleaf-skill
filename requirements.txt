@@ -1,2 +1,2 @@
-yeelight
+nanoleaf
 colour
