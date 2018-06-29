@@ -8,11 +8,14 @@ from os.path import dirname
 from adapt.intent import IntentBuilder
 from mycroft.skills.core import MycroftSkill
 from mycroft.util.log import getLogger
-from yeelight import Bulb
+from nanoleaf import Aurora #https://github.com/bharat/nanoleaf
+from nanoleaf import setup
+import time
 from time import sleep
 from colour import Color
 import math
 import re
+import configparser
 
 
 __author__ = 'PCWii'
@@ -25,43 +28,50 @@ LOGGER = getLogger(__name__)
 seq_delay = 0.5
 effect_delay = 3000
 
-bulbRHS = Bulb("192.168.0.50")
-bulbLHS = Bulb("192.168.0.51")
 Valid_Color = ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet', 'purple', 'white']
 
 # The logic of each skill is contained within its own class, which inherits
 # base methods from the MycroftSkill class with the syntax you can see below:
 # "class ____Skill(MycroftSkill)"
-class YeeLightSkill(MycroftSkill):
+class NanoLeafSkill(MycroftSkill):
 
     # The constructor of the skill, which calls MycroftSkill's constructor
     def __init__(self):
-        super(YeeLightSkill, self).__init__(name="YeeLightSkill")
+        super(NanoLeafSkill, self).__init__(name="NanoLeafSkill")
 
     # This method loads the files needed for the skill's functioning, and
     # creates and registers each intent that the skill uses
     def initialize(self):
         self.load_data_files(dirname(__file__))
 
-        yee_light_on_intent = IntentBuilder("YeeLightOnIntent").\
+        # Check and then monitor for credential changes
+        self.settings.set_changed_callback(self.on_websettings_changed)
+        self.on_websettings_changed()
+
+        nano_leaf_on_intent = IntentBuilder("NanoLeafOnIntent").\
             require("DeviceKeyword").require("OnKeyword").\
             optionally("LightKeyword").build()
-        self.register_intent(yee_light_on_intent, self.handle_yee_light_on_intent)
+        self.register_intent(nano_leaf_on_intent, self.handle_nano_leaf_on_intent)
 
-        yee_light_off_intent = IntentBuilder("YeeLightOffIntent").\
+        nano_leaf_off_intent = IntentBuilder("NanoLeafOffIntent").\
             require("DeviceKeyword").require("OffKeyword").\
             optionally("LightKeyword").build()
-        self.register_intent(yee_light_off_intent, self.handle_yee_light_off_intent)
+        self.register_intent(nano_leaf_off_intent, self.handle_nano_leaf_off_intent)
 
-        yee_light_dim_intent = IntentBuilder("YeeLightDimIntent").\
+        nano_leaf_dim_intent = IntentBuilder("NanoLeafDimIntent").\
             require("DimKeyword").require("DeviceKeyword").\
             optionally("LightKeyword").build()
-        self.register_intent(yee_light_dim_intent, self.handle_yee_light_dim_intent)
+        self.register_intent(nano_leaf_dim_intent, self.handle_nano_leaf_dim_intent)
 
-        yee_light_set_intent = IntentBuilder("YeeLightSetIntent").\
+        nano_leaf_set_intent = IntentBuilder("NanoLeafSetIntent").\
             require("SetKeyword").require("DeviceKeyword").\
             optionally("Lightkeyword").build()
-        self.register_intent(yee_light_set_intent, self.handle_yee_light_set_intent)
+        self.register_intent(nano_leaf_set_intent, self.handle_nano_leaf_set_intent)
+
+        nano_leaf_get_token_intent = IntentBuilder("NanoLeafGetTokenIntent").\
+            require('GetKeyword').require("DeviceKeyword").\
+            require('TokenKeyword').build()
+        self.register_intent(nano_leaf_get_token_intent, slef.handle_nano_leaf_get_token_intent)
 
 
     # The "handle_xxxx_intent" functions define Mycroft's behavior when
@@ -70,33 +80,55 @@ class YeeLightSkill(MycroftSkill):
     # actually speak the text it's passed--instead, that text is the filename
     # of a file in the dialog folder, and Mycroft speaks its contents when
     # the method is called.
-    def handle_yee_light_on_intent(self, message):
-        bulbRHS.turn_on()
-        sleep(seq_delay)
-        bulbLHS.turn_on()
-        sleep(seq_delay)
-        bulbLHS.set_rgb(255, 255, 255)
-        sleep(seq_delay)
-        bulbRHS.set_rgb(255, 255, 255)
-        sleep(seq_delay)
-        bulbRHS.set_brightness(100, duration=effect_delay)
-        sleep(seq_delay)
-        bulbLHS.set_brightness(100, duration=effect_delay)
+    def on_websettings_changed(self):
+        if not self._is_setup:
+            IPstring = self.settings.get("ipstring", "")
+            tokenString = self.settings.get("tokenstring", "")
+            try:
+                if IPstring and tokenString:
+                    IPstring = self.settings["ipstring"]
+                    tokenString = self.settings["tokenstring"]
+                    self._is_setup = True
+            except Exception as e:
+                LOG.error(e)
+
+    def handle_nano_leaf_get_token_intent(self, message):
+        iniFile = "kelsey.ini"
+        cfgfile = open(iniFile, 'w')
+        try:
+            token = setup.generate_auth_token(IPstring)
+        except:
+            token = "Not Found"
+            self.speak("The Token Was Not Found!")
+        kelsey_ini = configparser.ConfigParser()
+        kelsey_ini.add_section('Aurora')
+        kelsey_ini.set('Aurora', 'Token', str(token))
+        kelsey_ini.set('Aurora', 'Layout', "35,216,214,157,5,112,124")
+        time.ctime()  # 'Mon Oct 18 13:35:29 2010'
+        tokenTime = time.strftime('%l:%M%p %Z on %b %d, %Y')
+        kelsey_ini.set('Aurora', 'Time', tokenTime)
+        kelsey_ini.write(cfgfile)
+        cfgfile.close()
+        self.settins.set('tokenstring', str(token) )
+
+
+    def handle_nano_leaf_on_intent(self, message):
+        MyPanels = Aurora(IPstring, tokenString)
+        MyPanels.on = True
+        MyPanels.brightness = 100
         self.speak_dialog("light.on")
 
-    def handle_yee_light_off_intent(self, message):
-        bulbRHS.turn_off(duration=effect_delay)
-        sleep(seq_delay)
-        bulbLHS.turn_off(duration=effect_delay)
+    def handle_nano_leaf_off_intent(self, message):
+        MyPanels = Aurora(IPstring, tokenString)
+        MyPanels.on = False
         self.speak_dialog("light.off")
 
-    def handle_yee_light_dim_intent(self, message):
-        bulbRHS.set_brightness(5, duration=effect_delay)
-        sleep(seq_delay)
-        bulbLHS.set_brightness(5, duration=effect_delay)
+    def handle_nano_leaf_dim_intent(self, message):
+        MyPanels = Aurora(IPstring, tokenString)
+        MyPanels.brightness = 5
         self.speak_dialog("light.dim")
 
-    def handle_yee_light_set_intent(self, message):
+    def handle_nano_leaf_set_intent(self, message):
         str_remainder = str(message.utterance_remainder())
         for findcolor in Valid_Color:
             mypos = str_remainder.find(findcolor)
@@ -111,9 +143,8 @@ class YeeLightSkill(MycroftSkill):
                 break
         dim_level = re.findall('\d+', str_remainder)
         if dim_level:
-            bulbLHS.set_brightness(int(dim_level[0]), duration=effect_delay)
-            sleep(seq_delay)
-            bulbRHS.set_brightness(int(dim_level[0]), duration=effect_delay)
+            myPanels = Aurora(IPstring, tokenString)
+            MyPanels.brightness = int(dim_level[0]
             self.speak_dialog("light.set", data={"result": str(dim_level[0])+ ", percent"})
 
     # The "stop" method defines what Mycroft does when told to stop during
@@ -126,4 +157,4 @@ class YeeLightSkill(MycroftSkill):
 # The "create_skill()" method is used to create an instance of the skill.
 # Note that it's outside the class itself.
 def create_skill():
-    return YeeLightSkill()
+    return NanoLeafSkill()

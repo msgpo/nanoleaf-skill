@@ -1,2 +1,2 @@
-nanoleaf
+https://github.com/stuwil/nanoleaf.git
 colour
