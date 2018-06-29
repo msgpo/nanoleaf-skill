@@ -143,7 +143,7 @@ class NanoLeafSkill(MycroftSkill):
         dim_level = re.findall('\d+', str_remainder)
         if dim_level:
             myPanels = Aurora(IPstring, tokenString)
-            MyPanels.brightness = int(dim_level[0]
+            MyPanels.brightness = int(dim_level[0])
             self.speak_dialog("light.set", data={"result": str(dim_level[0])+ ", percent"})
 
     # The "stop" method defines what Mycroft does when told to stop during
