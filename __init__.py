@@ -94,22 +94,22 @@ class NanoLeafSkill(MycroftSkill):
                 LOG.error(e)
 
     def handle_nano_leaf_get_token_intent(self, message):
-        iniFile = "kelsey.ini"
-        cfgfile = open(iniFile, 'w')
+        #iniFile = "kelsey.ini"
+        #cfgfile = open(iniFile, 'w')
         try:
             token = setup.generate_auth_token(self.settings["ipstring"])
         except:
             token = "Not Found"
             self.speak("The Token Was Not Found!")
-        kelsey_ini = configparser.ConfigParser()
-        kelsey_ini.add_section('Aurora')
-        kelsey_ini.set('Aurora', 'Token', str(token))
-        kelsey_ini.set('Aurora', 'Layout', "35,216,214,157,5,112,124")
-        time.ctime()  # 'Mon Oct 18 13:35:29 2010'
-        tokenTime = time.strftime('%l:%M%p %Z on %b %d, %Y')
-        kelsey_ini.set('Aurora', 'Time', tokenTime)
-        kelsey_ini.write(cfgfile)
-        cfgfile.close()
+        #kelsey_ini = configparser.ConfigParser()
+        #kelsey_ini.add_section('Aurora')
+        #kelsey_ini.set('Aurora', 'Token', str(token))
+        #kelsey_ini.set('Aurora', 'Layout', "35,216,214,157,5,112,124")
+        #time.ctime()  # 'Mon Oct 18 13:35:29 2010'
+        #tokenTime = time.strftime('%l:%M%p %Z on %b %d, %Y')
+        #kelsey_ini.set('Aurora', 'Time', tokenTime)
+        #kelsey_ini.write(cfgfile)
+        #cfgfile.close()
         self.settins.set('tokenstring', str(token))
         if token != "Not Found":
             self.speak('I have retrieved a new token')
