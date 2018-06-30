@@ -140,9 +140,9 @@ class NanoLeafSkill(MycroftSkill):
                 break
         dim_level = re.findall('\d+', str_remainder)
         if dim_level:
-            myPanels = Aurora(IPstring, tokenString)
+            MyPanels = Aurora(IPstring, tokenString)
             MyPanels.brightness = int(dim_level[0])
-            self.speak_dialog("light.set", data={"result": str(dim_level[0])+ ", percent"})
+            self.speak_dialog("light.set", data={"result": str(dim_level[0]) + ", percent"})
 
     # The "stop" method defines what Mycroft does when told to stop during
     # the skill's execution. In this case, since the skill's functionality
