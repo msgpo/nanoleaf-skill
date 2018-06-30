@@ -94,6 +94,7 @@ class NanoLeafSkill(MycroftSkill):
                 LOG.error(e)
 
     def handle_nano_leaf_get_token_intent(self, message):
+        # retrieve the token from the nanoleaf
         try:
             token = setup.generate_auth_token(self.settings["ipstring"])
         except:
