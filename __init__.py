@@ -72,7 +72,7 @@ class NanoLeafSkill(MycroftSkill):
         nano_leaf_get_token_intent = IntentBuilder("NanoLeafGetTokenIntent").\
             require('GetKeyword').require("DeviceKeyword").\
             require('TokenKeyword').build()
-        self.register_intent(nano_leaf_get_token_intent, slef.handle_nano_leaf_get_token_intent)
+        self.register_intent(nano_leaf_get_token_intent, self.handle_nano_leaf_get_token_intent)
 
 
     # The "handle_xxxx_intent" functions define Mycroft's behavior when
@@ -94,11 +94,10 @@ class NanoLeafSkill(MycroftSkill):
                 LOG.error(e)
 
     def handle_nano_leaf_get_token_intent(self, message):
-        #To generate an auth token, you must first press and hold the power button on the Aurora for about 5-7 seconds, until the white LED flashes briefly.
         iniFile = "kelsey.ini"
         cfgfile = open(iniFile, 'w')
         try:
-            token = setup.generate_auth_token(IPstring)
+            token = setup.generate_auth_token(self.settings["ipstring"])
         except:
             token = "Not Found"
             self.speak("The Token Was Not Found!")
@@ -111,27 +110,35 @@ class NanoLeafSkill(MycroftSkill):
         kelsey_ini.set('Aurora', 'Time', tokenTime)
         kelsey_ini.write(cfgfile)
         cfgfile.close()
-        self.settins.set('tokenstring', str(token) )
+        self.settins.set('tokenstring', str(token))
         if token != "Not Found":
             self.speak('I have retrieved a new token')
 
     def handle_nano_leaf_on_intent(self, message):
+        IPstring = self.settings["ipstring"]
+        tokenString = self.settings["tokenstring"]
         MyPanels = Aurora(IPstring, tokenString)
         MyPanels.on = True
         MyPanels.brightness = 100
         self.speak_dialog("light.on")
 
     def handle_nano_leaf_off_intent(self, message):
+        IPstring = self.settings["ipstring"]
+        tokenString = self.settings["tokenstring"]
         MyPanels = Aurora(IPstring, tokenString)
         MyPanels.on = False
         self.speak_dialog("light.off")
 
     def handle_nano_leaf_dim_intent(self, message):
+        IPstring = self.settings["ipstring"]
+        tokenString = self.settings["tokenstring"]
         MyPanels = Aurora(IPstring, tokenString)
         MyPanels.brightness = 5
         self.speak_dialog("light.dim")
 
     def handle_nano_leaf_set_intent(self, message):
+        IPstring = self.settings["ipstring"]
+        tokenString = self.settings["tokenstring"]
         str_remainder = str(message.utterance_remainder())
         for findcolor in Valid_Color:
             mypos = str_remainder.find(findcolor)
