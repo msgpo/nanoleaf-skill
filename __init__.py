@@ -110,7 +110,7 @@ class NanoLeafSkill(MycroftSkill):
         #kelsey_ini.set('Aurora', 'Time', tokenTime)
         #kelsey_ini.write(cfgfile)
         #cfgfile.close()
-        self.settins.set('tokenstring', str(token))
+        self.settings.set('tokenstring', str(token))
         if token != "Not Found":
             self.speak('I have retrieved a new token')
 
