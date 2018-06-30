@@ -139,7 +139,7 @@ class NanoLeafSkill(MycroftSkill):
                 myHex = Color(findcolor).hex_l
                 self.speak_dialog("light.set", data ={"result": findcolor})
                 MyPanels = Aurora(IPstring, tokenString)
-                MyPanels.rgb = myHex
+                MyPanels.rgb = myHex[1:]
                 break
         dim_level = re.findall('\d+', str_remainder)
         if dim_level:
