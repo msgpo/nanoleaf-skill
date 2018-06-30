@@ -133,7 +133,7 @@ class NanoLeafSkill(MycroftSkill):
         for findcolor in Valid_Color:
             mypos = str_remainder.find(findcolor)
             if mypos > 0:
-                if findcolor = 'read':
+                if findcolor == 'read':
                     findcolor = 'red'
                 myRed = math.trunc(Color(findcolor).get_red() * 255)
                 myGreen = math.trunc(Color(findcolor).get_green() * 255)
