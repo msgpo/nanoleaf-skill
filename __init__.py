@@ -136,7 +136,10 @@ class NanoLeafSkill(MycroftSkill):
                 myRed = math.trunc(Color(findcolor).get_red() * 255)
                 myGreen = math.trunc(Color(findcolor).get_green() * 255)
                 myBlue = math.trunc(Color(findcolor).get_blue() * 255)
+                myHex = Colour(findcolor).hex_l
                 self.speak_dialog("light.set", data ={"result": findcolor})
+                MyPanels = Aurora(IPstring, tokenString)
+                MyPanels.rgb = myHex
                 break
         dim_level = re.findall('\d+', str_remainder)
         if dim_level:
