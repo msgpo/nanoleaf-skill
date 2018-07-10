@@ -8,8 +8,10 @@ from os.path import dirname
 from adapt.intent import IntentBuilder
 from mycroft.skills.core import MycroftSkill
 from mycroft.util.log import getLogger
+
 from nanoleaf import Aurora #https://github.com/bharat/nanoleaf
 from nanoleaf import setup
+
 import time
 from time import sleep
 from colour import Color
@@ -125,7 +127,7 @@ class NanoLeafSkill(MycroftSkill):
         MyPanels = Aurora(IPstring, tokenString)
         MyPanels.brightness = 5
         self.speak_dialog("light.dim")
-
+    # Set the color and or brightness %
     def handle_nano_leaf_set_intent(self, message):
         IPstring = self.settings["ipstring"]
         tokenString = self.settings["tokenstring"]
