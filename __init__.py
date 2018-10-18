@@ -164,12 +164,12 @@ class NanoLeafSkill(MycroftSkill):
     def handle_start_cinema_mode_intent(self, message):
         self.cinema_mode.idStop = False
         self.cinema_mode.id = 101
-        self.cinema_mode.idThread = threading.Thread(target=self.do_cinema_mode, args=(self.cinema_mode.id,
-                                                                             lambda: self.cinema_mode.idStop))
+        self.cinema_mode.idThread = threading.Thread(target=self.do_cinema_mode,
+                                                     args=(self.cinema_mode.id, lambda: self.cinema_mode.idStop))
         self.cinema_mode.idThread.start()
 
     # Phrase: Disable nanoleaf cinema mode by stopping the thread
-    @intent_handler(IntentBuilder('StopCinemaModeIntent').require('StartKeyword').require('DeviceKeyword').
+    @intent_handler(IntentBuilder('StopCinemaModeIntent').require('StopKeyword').require('DeviceKeyword').
                     require('CinemaKeyword').build())
     def handle_stop_cinema_mode_intent(self, message):
         self.cinema_mode.id = 101
