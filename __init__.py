@@ -6,11 +6,11 @@
 
 from os.path import dirname
 from adapt.intent import IntentBuilder
-from mycroft.skills.core import MycroftSkill
+from mycroft.skills.core import MycroftSkill, intent_handler, intent_file_handler
 from mycroft.util.log import getLogger
 from mycroft.util.log import LOG
 
-from nanoleaf import Aurora #https://github.com/pcwii/nanoleaf.git
+from nanoleaf import Aurora  # https://github.com/pcwii/nanoleaf.git
 from nanoleaf import setup
 
 import threading
@@ -121,17 +121,23 @@ class NanoLeafSkill(MycroftSkill):
         my_aurora.on = True  # Turn nanoleaf on
         my_aurora.brightness = 50  # set brightness
         sleep(1)
-        strm = my_aurora.effect_stream()  # set nanoleaf to streaming mode
+        try:
+            strm = my_aurora.effect_stream()  # set nanoleaf to streaming mode
+            LOG.info('Aurora Successfully switched to cinema mode')
+        except Exception as e:
+            LOG.error(e)
+            LOG.info('Aurora Failed to launch cinema mode')
+
         while True:
             raw_data = sock.recvfrom(21)  # hyperion sends 3 bytes (R,G,B) for each configured light (3*7=21)
             byte_data = bytearray(raw_data[0])  # retrieve hyperion byte array
             RGBList = list(byte_data)  # great R-G-B list
-            LOG.info(RGBList)  # for debuging only
+            # LOG.info(RGBList)  # for debuging only
             PanelCount = 0  # initial condition
             for Panel in PanelIDs:  # itterate through the configured PanleID's above
                 # Todo - Determine if I can use Panel instead of PanelID's
                 # Todo - If we can use Panel then the PanelCount should not be required
-                LOG.info('Panel: ' + str(Panel) + " - Panel ID:" + str(PanelIDs[PanelCount]))
+                # LOG.info('Panel: ' + str(Panel) + " - Panel ID:" + str(PanelIDs[PanelCount]))
                 firstByteIndex = PanelCount * 3  # Red Index
                 secondByteIndex = firstByteIndex + 1  # Green Index
                 thirdByteIndex = secondByteIndex + 1  # Blue Index
@@ -153,8 +159,10 @@ class NanoLeafSkill(MycroftSkill):
             if terminate():
                 LOG.info('Stop Signal Received')
                 break
+        my_aurora.on = False  # Turn nanoleaf on
         LOG.info("Nanoleaf Cinema Mode Ended", my_id)
 
+    # Phrase: Enable nanoleaf cinema mode
     @intent_handler(IntentBuilder('StartCinemaModeIntent').require('StartKeyword').require('DeviceKeyword').
                     require('CinemaKeyword').build())
     def handle_start_cinema_mode_intent(self, message):
@@ -164,6 +172,7 @@ class NanoLeafSkill(MycroftSkill):
                                                                              lambda: self.cinema_mode.idStop))
         self.cinema_mode.idThread.start()
 
+    # Phrase: Disable nanoleaf cinema mode
     @intent_handler(IntentBuilder('StopCinemaModeIntent').require('StartKeyword').require('DeviceKeyword').
                     require('CinemaKeyword').build())
     def handle_stop_cinema_mode_intent(self, message):
