@@ -101,7 +101,7 @@ class NanoLeafSkill(MycroftSkill):
         return all_panel_ids
 
     def do_cinema_mode(self, my_id, terminate):
-        LOG.info("Starting Nanoleaf Cinema Mode", my_id)
+        LOG.info("Starting Nanoleaf Cinema Mode: " + str(my_id))
         all_panels = self.get_panels()
         panel_ids = all_panels[1:-1]
         lower_panel = all_panels[0]
@@ -156,7 +156,7 @@ class NanoLeafSkill(MycroftSkill):
             LOG.error(e)
             LOG.info('Aurora Failed to launch cinema mode')
         my_aurora.on = False  # Turn nanoleaf off
-        LOG.info("Nanoleaf Cinema Mode Ended", my_id)
+        LOG.info("Nanoleaf Cinema Mode Ended: " + str(my_id))
 
     # Phrase: Enable nanoleaf cinema mode by starting the thread
     @intent_handler(IntentBuilder('StartCinemaModeIntent').require('StartKeyword').require('DeviceKeyword').
