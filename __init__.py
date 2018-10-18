@@ -28,7 +28,7 @@ __author__ = 'PCWii'
 LOGGER = getLogger(__name__)
 
 # List each of the bulbs here
-Valid_Color = ['red', 'read', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet', 'purple', 'white']
+Valid_Color = ['red', 'read', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet', 'purple', 'white', 'toronto']
 
 
 class NanoLeafSkill(MycroftSkill):
@@ -102,7 +102,6 @@ class NanoLeafSkill(MycroftSkill):
 
     def do_cinema_mode(self, my_id, terminate):
         LOG.info("Starting Nanoleaf Cinema Mode", my_id)
-        #Todo Update the Code here
         all_panels = self.get_panels()
         panel_ids = all_panels[1:-1]
         lower_panel = all_panels[0]
@@ -123,40 +122,40 @@ class NanoLeafSkill(MycroftSkill):
         try:
             strm = my_aurora.effect_stream()  # set nanoleaf to streaming mode
             LOG.info('Aurora Successfully switched to cinema mode')
+            while True:
+                raw_data = sock.recvfrom(21)  # hyperion sends 3 bytes (R,G,B) for each configured light (3*7=21)
+                byte_data = bytearray(raw_data[0])  # retrieve hyperion byte array
+                rgb_list = list(byte_data)  # great R-G-B list
+                # LOG.info(rgb_list)  # for debuging only
+                panel_count = 0  # initial condition
+                for each_panel in panel_ids:  # itterate through the configured PanleID's above
+                    # Todo - Determine if I can use Panel instead of PanelID's
+                    # Todo - If we can use Panel then the PanelCount should not be required
+                    LOG.info('Panel: ' + str(each_panel) + " - Panel ID:" + str(panel_ids[panel_count]))
+                    first_byte_index = panel_count * 3  # Red Index
+                    second_byte_index = first_byte_index + 1  # Green Index
+                    third_byte_index = second_byte_index + 1  # Blue Index
+                    int_panel_id = panel_ids[panel_count]  # This Panel ID ***could this not just be "Panel"
+                    int_red_value = rgb_list[first_byte_index]
+                    int_green_value = rgb_list[second_byte_index]
+                    int_blue_value = rgb_list[third_byte_index]
+                    if int_panel_id == lower_panel or int_panel_id == first_panel:  # condition to handle two panels on the same vertical axis, or configure hyperion to drive this as well
+                        strm.panel_set(lower_panel, int_red_value, int_green_value, int_blue_value)
+                        strm.panel_set(first_panel, int_red_value, int_green_value, int_blue_value)
+                    else:
+                        if int_panel_id == upper_panel or int_panel_id == last_panel:  # condition to handle two panels on the same vertical axis, or configure hyperion to drive this as well
+                            strm.panel_set(upper_panel, int_red_value, int_green_value, int_blue_value)
+                            strm.panel_set(last_panel, int_red_value, int_green_value, int_blue_value)
+                        else:
+                            strm.panel_set(int_panel_id, int_red_value, int_green_value, int_blue_value)  # set the current panel color
+                            panel_count += 1  # next panel
+                if terminate():
+                    LOG.info('Stop Signal Received')
+                    break
         except Exception as e:
             LOG.error(e)
             LOG.info('Aurora Failed to launch cinema mode')
-        while True:
-            raw_data = sock.recvfrom(21)  # hyperion sends 3 bytes (R,G,B) for each configured light (3*7=21)
-            byte_data = bytearray(raw_data[0])  # retrieve hyperion byte array
-            rgb_list = list(byte_data)  # great R-G-B list
-            # LOG.info(rgb_list)  # for debuging only
-            panel_count = 0  # initial condition
-            for each_panel in panel_ids:  # itterate through the configured PanleID's above
-                # Todo - Determine if I can use Panel instead of PanelID's
-                # Todo - If we can use Panel then the PanelCount should not be required
-                LOG.info('Panel: ' + str(each_panel) + " - Panel ID:" + str(panel_ids[panel_count]))
-                first_byte_index = panel_count * 3  # Red Index
-                second_byte_index = first_byte_index + 1  # Green Index
-                third_byte_index = second_byte_index + 1  # Blue Index
-                int_panel_id = panel_ids[panel_count]  # This Panel ID ***could this not just be "Panel"
-                int_red_value = rgb_list[first_byte_index]
-                int_green_value = rgb_list[second_byte_index]
-                int_blue_value = rgb_list[third_byte_index]
-                if int_panel_id == lower_panel or int_panel_id == first_panel:  # condition to handle two panels on the same vertical axis, or configure hyperion to drive this as well
-                    strm.panel_set(lower_panel, int_red_value, int_green_value, int_blue_value)
-                    strm.panel_set(first_panel, int_red_value, int_green_value, int_blue_value)
-                else:
-                    if int_panel_id == upper_panel or int_panel_id == last_panel:  # condition to handle two panels on the same vertical axis, or configure hyperion to drive this as well
-                        strm.panel_set(upper_panel, int_red_value, int_green_value, int_blue_value)
-                        strm.panel_set(last_panel, int_red_value, int_green_value, int_blue_value)
-                    else:
-                        strm.panel_set(int_panel_id, int_red_value, int_green_value, int_blue_value)  # set the current panel color
-                        panel_count += 1  # next panel
-            if terminate():
-                LOG.info('Stop Signal Received')
-                break
-        my_aurora.on = False  # Turn nanoleaf on
+        my_aurora.on = False  # Turn nanoleaf off
         LOG.info("Nanoleaf Cinema Mode Ended", my_id)
 
     # Phrase: Enable nanoleaf cinema mode by starting the thread
@@ -181,7 +180,8 @@ class NanoLeafSkill(MycroftSkill):
         # retrieve the token from the nanoleaf
         try:
             token = setup.generate_auth_token(self.settings["ipstring"])
-        except:
+        except Exception as e:
+            LOG.error(e)
             token = "Not Found"
             self.speak("The Token Was Not Found!")
         self.settings["tokenstring"] = str(token)
@@ -211,9 +211,14 @@ class NanoLeafSkill(MycroftSkill):
             if mypos > 0:
                 if findcolor == 'read':
                     findcolor = 'red'
-                myRed = math.trunc(Color(findcolor).get_red() * 255)
-                myGreen = math.trunc(Color(findcolor).get_green() * 255)
-                myBlue = math.trunc(Color(findcolor).get_blue() * 255)
+                if findcolor == 'toronto':
+                    myRed = 0
+                    myGreen = 62
+                    myBlue = 126
+                else:
+                    myRed = math.trunc(Color(findcolor).get_red() * 255)
+                    myGreen = math.trunc(Color(findcolor).get_green() * 255)
+                    myBlue = math.trunc(Color(findcolor).get_blue() * 255)
                 myHex = Color(findcolor).hex_l
                 self.speak_dialog("light.set", data ={"result": findcolor})
                 MyPanels = Aurora(self.IPstring, self.tokenString)
