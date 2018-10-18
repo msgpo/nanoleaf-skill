@@ -8,12 +8,13 @@ from os.path import dirname
 from adapt.intent import IntentBuilder
 from mycroft.skills.core import MycroftSkill
 from mycroft.util.log import getLogger
+from mycroft.util.log import LOG
 
 from nanoleaf import Aurora #https://github.com/pcwii/nanoleaf.git
 from nanoleaf import setup
 
 import threading
-import time
+import socket
 from time import sleep
 from colour import Color
 import math
@@ -43,6 +44,10 @@ class NanoLeafSkill(MycroftSkill):
         self.settings["tokenstring"] = ""
         self._is_setup = False
         self.cinema_mode = self.NewThread
+        self.IPstring = ""
+        self.tokenString = ""
+        self.UDP_IP = "192.168.0.251"  # This should be the IP address of the machine the code is running on (mycroft)
+        self.UDP_PORT = 20450
 
     # This method loads the files needed for the skill's functioning, and
     # creates and registers each intent that the skill uses
@@ -79,19 +84,27 @@ class NanoLeafSkill(MycroftSkill):
 
     def on_websettings_changed(self):
         if not self._is_setup:
-            IPstring = self.settings.get("ipstring", "")
-            tokenString = self.settings.get("tokenstring", "")
+            self.IPstring = self.settings.get("ipstring", "")
+            self.tokenString = self.settings.get("tokenstring", "")
             try:
-                if IPstring and tokenString:
-                    IPstring = self.settings["ipstring"]
-                    tokenString = self.settings["tokenstring"]
+                if self.IPstring and self.tokenString:
+                    self.IPstring = self.settings["ipstring"]
+                    self.tokenString = self.settings["tokenstring"]
                     self._is_setup = True
             except Exception as e:
                 LOG.error(e)
 
-    def do_cinema_mode(self, my_id, stop):
-        LOG.info("Starting Nanoleaf Cinema Mode", id)
-        #Todo Insert the
+    def get_panels(self):
+        MyPanels = Aurora(self.IPstring, self.tokenString)
+        MyPanelIDs = [x['panelId'] for x in
+                      MyPanels.panel_positions]  # retreive nanoleaf panel ID's for information only
+        LOG.info(MyPanelIDs)
+        return MyPanelIDs
+
+    def do_cinema_mode(self, my_id, terminate):
+        LOG.info("Starting Nanoleaf Cinema Mode", my_id)
+        #Todo Update the Code here
+        my_panels = self.get_panels()
         PanelIDs = my_panels[1:-1]
         lower_panel = my_panels[0]
         upper_panel = my_panels[len(my_panels) - 1]
@@ -103,21 +116,22 @@ class NanoLeafSkill(MycroftSkill):
         LOG.info(upper_panel)
         LOG.info(last_panel)
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
-        sock.bind((UDP_IP, UDP_PORT))
-        my_aurora = Aurora(IPstring, tokenString)  # IP address and key for nanoleaf Aurora
+        sock.bind((self.UDP_IP, self.UDP_PORT))
+        my_aurora = Aurora(self.IPstring, self.tokenString)  # IP address and key for nanoleaf Aurora
         my_aurora.on = True  # Turn nanoleaf on
         my_aurora.brightness = 50  # set brightness
         sleep(1)
-        strm = my_aurora.effect_stream()  # set nanoleaf to streaming mode, this only works with bharat's fork of nanoleaf
-        # print(strm.addr)
+        strm = my_aurora.effect_stream()  # set nanoleaf to streaming mode
         while True:
-            data = sock.recvfrom(21)  # hyperion sends 3 bytes (R,G,B) for each configured light (3*7=21)
-            now = datetime.datetime.now()  # retrieve time for debuging
-            new = bytearray(data[0])  # retrieve hyperion byte array
-            RGBList = list(new)  # great R-G-B list
-            # print(RGBList)  # for debuging only
+            raw_data = sock.recvfrom(21)  # hyperion sends 3 bytes (R,G,B) for each configured light (3*7=21)
+            byte_data = bytearray(raw_data[0])  # retrieve hyperion byte array
+            RGBList = list(byte_data)  # great R-G-B list
+            LOG.info(RGBList)  # for debuging only
             PanelCount = 0  # initial condition
             for Panel in PanelIDs:  # itterate through the configured PanleID's above
+                # Todo - Determine if I can use Panel instead of PanelID's
+                # Todo - If we can use Panel then the PanelCount should not be required
+                LOG.info('Panel: ' + str(Panel) + " - Panel ID:" + str(PanelIDs[PanelCount]))
                 firstByteIndex = PanelCount * 3  # Red Index
                 secondByteIndex = firstByteIndex + 1  # Green Index
                 thirdByteIndex = secondByteIndex + 1  # Blue Index
@@ -125,8 +139,6 @@ class NanoLeafSkill(MycroftSkill):
                 intRedValue = RGBList[firstByteIndex]
                 intGreenValue = RGBList[secondByteIndex]
                 intBlueValue = RGBList[thirdByteIndex]
-                # print(str(intPanelID) + " " + str(intRedValue) + " " + str(intGreenValue) + " " + str(intBlueValue))
-
                 if intPanelID == lower_panel or intPanelID == first_panel:  # condition to handle two panels on the same vertical axis, or configure hyperion to drive this as well
                     strm.panel_set(lower_panel, intRedValue, intGreenValue, intBlueValue)
                     strm.panel_set(first_panel, intRedValue, intGreenValue, intBlueValue)
@@ -138,11 +150,10 @@ class NanoLeafSkill(MycroftSkill):
                         strm.panel_set(intPanelID, intRedValue, intGreenValue,
                                        intBlueValue)  # set the current panel color
                 PanelCount += 1  # next panel
-            if stop():
-                # optional Stop Statement
+            if terminate():
+                LOG.info('Stop Signal Received')
                 break
-
-        print("Dimming is completed".format(id))
+        LOG.info("Nanoleaf Cinema Mode Ended", my_id)
 
     @intent_handler(IntentBuilder('StartCinemaModeIntent').require('StartKeyword').require('DeviceKeyword').
                     require('CinemaKeyword').build())
@@ -156,9 +167,9 @@ class NanoLeafSkill(MycroftSkill):
     @intent_handler(IntentBuilder('StopCinemaModeIntent').require('StartKeyword').require('DeviceKeyword').
                     require('CinemaKeyword').build())
     def handle_stop_cinema_mode_intent(self, message):
+        self.cinema_mode.id = 101
         self.cinema_mode.idStop = True
         self.cinema_mode.idThread.join()
-
 
     def handle_nano_leaf_get_token_intent(self, message):
         # retrieve the token from the nanoleaf
