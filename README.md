@@ -12,7 +12,8 @@ Mycroft.AI will have control over the smart wifi dimmer switch
 PCWii
 ## Require 
 platform_picroft
-- [nanoleaf](https://github.com/bharat/nanoleaf)
+- [nanoleaf](https://github.com/pcwii/nanoleaf)
+- must support streaming mode
 ## Other Requirements
 - [Mycroft](https://docs.mycroft.ai/installing.and.running/installation)
 - [nanoleaf lighting](https://nanoleaf.me/en-ca/)
