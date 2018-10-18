@@ -95,22 +95,21 @@ class NanoLeafSkill(MycroftSkill):
                 LOG.error(e)
 
     def get_panels(self):
-        MyPanels = Aurora(self.IPstring, self.tokenString)
-        MyPanelIDs = [x['panelId'] for x in
-                      MyPanels.panel_positions]  # retreive nanoleaf panel ID's for information only
-        LOG.info(MyPanelIDs)
-        return MyPanelIDs
+        all_panels = Aurora(self.IPstring, self.tokenString)
+        all_panel_ids = [x['panelId'] for x in all_panels.panel_positions]
+        LOG.info(all_panel_ids)
+        return all_panel_ids
 
     def do_cinema_mode(self, my_id, terminate):
         LOG.info("Starting Nanoleaf Cinema Mode", my_id)
         #Todo Update the Code here
-        my_panels = self.get_panels()
-        PanelIDs = my_panels[1:-1]
-        lower_panel = my_panels[0]
-        upper_panel = my_panels[len(my_panels) - 1]
-        first_panel = PanelIDs[0]
-        last_panel = PanelIDs[len(PanelIDs) - 1]
-        LOG.info(my_panels)
+        all_panels = self.get_panels()
+        panel_ids = all_panels[1:-1]
+        lower_panel = all_panels[0]
+        upper_panel = all_panels[len(all_panels) - 1]
+        first_panel = panel_ids[0]
+        last_panel = panel_ids[len(panel_ids) - 1]
+        LOG.info(all_panels)
         LOG.info(lower_panel)
         LOG.info(first_panel)
         LOG.info(upper_panel)
@@ -127,42 +126,40 @@ class NanoLeafSkill(MycroftSkill):
         except Exception as e:
             LOG.error(e)
             LOG.info('Aurora Failed to launch cinema mode')
-
         while True:
             raw_data = sock.recvfrom(21)  # hyperion sends 3 bytes (R,G,B) for each configured light (3*7=21)
             byte_data = bytearray(raw_data[0])  # retrieve hyperion byte array
-            RGBList = list(byte_data)  # great R-G-B list
-            # LOG.info(RGBList)  # for debuging only
-            PanelCount = 0  # initial condition
-            for Panel in PanelIDs:  # itterate through the configured PanleID's above
+            rgb_list = list(byte_data)  # great R-G-B list
+            # LOG.info(rgb_list)  # for debuging only
+            panel_count = 0  # initial condition
+            for each_panel in panel_ids:  # itterate through the configured PanleID's above
                 # Todo - Determine if I can use Panel instead of PanelID's
                 # Todo - If we can use Panel then the PanelCount should not be required
-                # LOG.info('Panel: ' + str(Panel) + " - Panel ID:" + str(PanelIDs[PanelCount]))
-                firstByteIndex = PanelCount * 3  # Red Index
-                secondByteIndex = firstByteIndex + 1  # Green Index
-                thirdByteIndex = secondByteIndex + 1  # Blue Index
-                intPanelID = PanelIDs[PanelCount]  # This Panel ID ***could this not just be "Panel"
-                intRedValue = RGBList[firstByteIndex]
-                intGreenValue = RGBList[secondByteIndex]
-                intBlueValue = RGBList[thirdByteIndex]
-                if intPanelID == lower_panel or intPanelID == first_panel:  # condition to handle two panels on the same vertical axis, or configure hyperion to drive this as well
-                    strm.panel_set(lower_panel, intRedValue, intGreenValue, intBlueValue)
-                    strm.panel_set(first_panel, intRedValue, intGreenValue, intBlueValue)
+                LOG.info('Panel: ' + str(each_panel) + " - Panel ID:" + str(panel_ids[panel_count]))
+                first_byte_index = panel_count * 3  # Red Index
+                second_byte_index = first_byte_index + 1  # Green Index
+                third_byte_index = second_byte_index + 1  # Blue Index
+                int_panel_id = panel_ids[panel_count]  # This Panel ID ***could this not just be "Panel"
+                int_red_value = rgb_list[first_byte_index]
+                int_green_value = rgb_list[second_byte_index]
+                int_blue_value = rgb_list[third_byte_index]
+                if int_panel_id == lower_panel or int_panel_id == first_panel:  # condition to handle two panels on the same vertical axis, or configure hyperion to drive this as well
+                    strm.panel_set(lower_panel, int_red_value, int_green_value, int_blue_value)
+                    strm.panel_set(first_panel, int_red_value, int_green_value, int_blue_value)
                 else:
-                    if intPanelID == upper_panel or intPanelID == last_panel:  # condition to handle two panels on the same vertical axis, or configure hyperion to drive this as well
-                        strm.panel_set(upper_panel, intRedValue, intGreenValue, intBlueValue)
-                        strm.panel_set(last_panel, intRedValue, intGreenValue, intBlueValue)
+                    if int_panel_id == upper_panel or int_panel_id == last_panel:  # condition to handle two panels on the same vertical axis, or configure hyperion to drive this as well
+                        strm.panel_set(upper_panel, int_red_value, int_green_value, int_blue_value)
+                        strm.panel_set(last_panel, int_red_value, int_green_value, int_blue_value)
                     else:
-                        strm.panel_set(intPanelID, intRedValue, intGreenValue,
-                                       intBlueValue)  # set the current panel color
-                PanelCount += 1  # next panel
+                        strm.panel_set(int_panel_id, int_red_value, int_green_value, int_blue_value)  # set the current panel color
+                        panel_count += 1  # next panel
             if terminate():
                 LOG.info('Stop Signal Received')
                 break
         my_aurora.on = False  # Turn nanoleaf on
         LOG.info("Nanoleaf Cinema Mode Ended", my_id)
 
-    # Phrase: Enable nanoleaf cinema mode
+    # Phrase: Enable nanoleaf cinema mode by starting the thread
     @intent_handler(IntentBuilder('StartCinemaModeIntent').require('StartKeyword').require('DeviceKeyword').
                     require('CinemaKeyword').build())
     def handle_start_cinema_mode_intent(self, message):
@@ -172,7 +169,7 @@ class NanoLeafSkill(MycroftSkill):
                                                                              lambda: self.cinema_mode.idStop))
         self.cinema_mode.idThread.start()
 
-    # Phrase: Disable nanoleaf cinema mode
+    # Phrase: Disable nanoleaf cinema mode by stopping the thread
     @intent_handler(IntentBuilder('StopCinemaModeIntent').require('StartKeyword').require('DeviceKeyword').
                     require('CinemaKeyword').build())
     def handle_stop_cinema_mode_intent(self, message):
@@ -192,30 +189,22 @@ class NanoLeafSkill(MycroftSkill):
             self.speak('I have retrieved a new token')
 
     def handle_nano_leaf_on_intent(self, message):
-        IPstring = self.settings["ipstring"]
-        tokenString = self.settings["tokenstring"]
-        MyPanels = Aurora(IPstring, tokenString)
+        MyPanels = Aurora(self.IPstring, self.tokenString)
         MyPanels.on = True
         MyPanels.brightness = 100
         self.speak_dialog("light.on")
 
     def handle_nano_leaf_off_intent(self, message):
-        IPstring = self.settings["ipstring"]
-        tokenString = self.settings["tokenstring"]
-        MyPanels = Aurora(IPstring, tokenString)
+        MyPanels = Aurora(self.IPstring, self.tokenString)
         MyPanels.on = False
         self.speak_dialog("light.off")
 
     def handle_nano_leaf_dim_intent(self, message):
-        IPstring = self.settings["ipstring"]
-        tokenString = self.settings["tokenstring"]
-        MyPanels = Aurora(IPstring, tokenString)
+        MyPanels = Aurora(self.IPstring, self.tokenString)
         MyPanels.brightness = 5
         self.speak_dialog("light.dim")
 
     def handle_nano_leaf_set_intent(self, message):
-        IPstring = self.settings["ipstring"]
-        tokenString = self.settings["tokenstring"]
         str_remainder = str(message.utterance_remainder())
         for findcolor in Valid_Color:
             mypos = str_remainder.find(findcolor)
@@ -227,12 +216,12 @@ class NanoLeafSkill(MycroftSkill):
                 myBlue = math.trunc(Color(findcolor).get_blue() * 255)
                 myHex = Color(findcolor).hex_l
                 self.speak_dialog("light.set", data ={"result": findcolor})
-                MyPanels = Aurora(IPstring, tokenString)
+                MyPanels = Aurora(self.IPstring, self.tokenString)
                 MyPanels.rgb = myHex[1:]
                 break
         dim_level = re.findall('\d+', str_remainder)
         if dim_level:
-            MyPanels = Aurora(IPstring, tokenString)
+            MyPanels = Aurora(self.IPstring, self.tokenString)
             MyPanels.brightness = int(dim_level[0])
             self.speak_dialog("light.set", data={"result": str(dim_level[0]) + ", percent"})
 
