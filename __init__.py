@@ -46,7 +46,7 @@ class NanoLeafSkill(MycroftSkill):
         self.cinema_mode = self.NewThread
         self.IPstring = ""
         self.tokenString = ""
-        self.UDP_IP = "192.168.0.251"  # This should be the IP address of the machine the code is running on (mycroft)
+        self.UDP_IP = "192.168.0.41"  #0.41 Kelsey.ai This should be the IP address of the machine the code is running on (mycroft)
         self.UDP_PORT = 20450
 
     # This method loads the files needed for the skill's functioning, and
