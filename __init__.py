@@ -115,11 +115,13 @@ class NanoLeafSkill(MycroftSkill):
         LOG.info(last_panel)
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
         sock.bind((self.UDP_IP, self.UDP_PORT))
+        LOG.info(self.IPstring + " : " + self.tokenString)
         my_aurora = Aurora(self.IPstring, self.tokenString)  # IP address and key for nanoleaf Aurora
         my_aurora.on = True  # Turn nanoleaf on
         my_aurora.brightness = 50  # set brightness
         sleep(1)
         try:
+            Mystrm = MyPanels.effect_stream()
             strm = my_aurora.effect_stream()  # set nanoleaf to streaming mode
             LOG.info('Aurora Successfully switched to cinema mode')
             while True:
