@@ -124,6 +124,7 @@ class NanoLeafSkill(MycroftSkill):
             strm = my_aurora.effect_stream()  # set nanoleaf to streaming mode
             LOG.info('Aurora Successfully switched to cinema mode')
             while True:
+                LOG.info('waiting for udp data')
                 raw_data = sock.recvfrom(21)  # hyperion sends 3 bytes (R,G,B) for each configured light (3*7=21)
                 byte_data = bytearray(raw_data[0])  # retrieve hyperion byte array
                 rgb_list = list(byte_data)  # great R-G-B list
