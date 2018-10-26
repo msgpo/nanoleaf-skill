@@ -126,32 +126,37 @@ class NanoLeafSkill(MycroftSkill):
             LOG.info('Aurora Successfully switched to cinema mode')
             while True:
                 LOG.info('waiting for udp data')
-                raw_data = sock.recvfrom(21)  # hyperion sends 3 bytes (R,G,B) for each configured light (3*7=21)
-                byte_data = bytearray(raw_data[0])  # retrieve hyperion byte array
-                rgb_list = list(byte_data)  # great R-G-B list
-                # LOG.info(rgb_list)  # for debuging only
-                panel_count = 0  # initial condition
-                for each_panel in panel_ids:  # itterate through the configured PanleID's above
-                    # Todo - Determine if I can use Panel instead of PanelID's
-                    # Todo - If we can use Panel then the PanelCount should not be required
-                    LOG.info('Panel: ' + str(each_panel) + " - Panel ID:" + str(panel_ids[panel_count]))
-                    first_byte_index = panel_count * 3  # Red Index
-                    second_byte_index = first_byte_index + 1  # Green Index
-                    third_byte_index = second_byte_index + 1  # Blue Index
-                    int_panel_id = panel_ids[panel_count]  # This Panel ID ***could this not just be "Panel"
-                    int_red_value = rgb_list[first_byte_index]
-                    int_green_value = rgb_list[second_byte_index]
-                    int_blue_value = rgb_list[third_byte_index]
-                    if int_panel_id == lower_panel or int_panel_id == first_panel:  # condition to handle two panels on the same vertical axis, or configure hyperion to drive this as well
-                        strm.panel_set(lower_panel, int_red_value, int_green_value, int_blue_value)
-                        strm.panel_set(first_panel, int_red_value, int_green_value, int_blue_value)
-                    else:
-                        if int_panel_id == upper_panel or int_panel_id == last_panel:  # condition to handle two panels on the same vertical axis, or configure hyperion to drive this as well
-                            strm.panel_set(upper_panel, int_red_value, int_green_value, int_blue_value)
-                            strm.panel_set(last_panel, int_red_value, int_green_value, int_blue_value)
+                try:
+                    raw_data = sock.recvfrom(21)  # hyperion sends 3 bytes (R,G,B) for each configured light (3*7=21)
+                    byte_data = bytearray(raw_data[0])  # retrieve hyperion byte array
+                    rgb_list = list(byte_data)  # great R-G-B list
+                    # LOG.info(rgb_list)  # for debuging only
+                    panel_count = 0  # initial condition
+                    for each_panel in panel_ids:  # itterate through the configured PanleID's above
+                        # Todo - Determine if I can use Panel instead of PanelID's
+                        # Todo - If we can use Panel then the PanelCount should not be required
+                        LOG.info('Panel: ' + str(each_panel) + " - Panel ID:" + str(panel_ids[panel_count]))
+                        first_byte_index = panel_count * 3  # Red Index
+                        second_byte_index = first_byte_index + 1  # Green Index
+                        third_byte_index = second_byte_index + 1  # Blue Index
+                        int_panel_id = panel_ids[panel_count]  # This Panel ID ***could this not just be "Panel"
+                        int_red_value = rgb_list[first_byte_index]
+                        int_green_value = rgb_list[second_byte_index]
+                        int_blue_value = rgb_list[third_byte_index]
+                        if int_panel_id == lower_panel or int_panel_id == first_panel:  # condition to handle two panels on the same vertical axis, or configure hyperion to drive this as well
+                            strm.panel_set(lower_panel, int_red_value, int_green_value, int_blue_value)
+                            strm.panel_set(first_panel, int_red_value, int_green_value, int_blue_value)
                         else:
-                            strm.panel_set(int_panel_id, int_red_value, int_green_value, int_blue_value)  # set the current panel color
-                            panel_count += 1  # next panel
+                            if int_panel_id == upper_panel or int_panel_id == last_panel:  # condition to handle two panels on the same vertical axis, or configure hyperion to drive this as well
+                                strm.panel_set(upper_panel, int_red_value, int_green_value, int_blue_value)
+                                strm.panel_set(last_panel, int_red_value, int_green_value, int_blue_value)
+                            else:
+                                strm.panel_set(int_panel_id, int_red_value, int_green_value, int_blue_value)  # set the current panel color
+                                panel_count += 1  # next panel
+                except Exception as e:
+                    LOG.error(e)
+                    LOG.info('Socket Timeout Error - No Data Received')
+                    break
                 if terminate():
                     LOG.info('Stop Signal Received')
                     break
