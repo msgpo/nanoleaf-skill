@@ -120,6 +120,7 @@ class NanoLeafSkill(MycroftSkill):
         my_aurora.on = True  # Turn nanoleaf on
         my_aurora.brightness = 50  # set brightness
         sleep(1)
+        sock.settimeout(5)
         try:
             strm = my_aurora.effect_stream()  # set nanoleaf to streaming mode
             LOG.info('Aurora Successfully switched to cinema mode')
