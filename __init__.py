@@ -113,19 +113,25 @@ class NanoLeafSkill(MycroftSkill):
         LOG.info(first_panel)
         LOG.info(upper_panel)
         LOG.info(last_panel)
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
-        sock.bind((self.UDP_IP, self.UDP_PORT))
-        LOG.info(self.IPstring + " : " + self.tokenString)
+        try:
+            LOG.info('Attempting to open the socket conneciton')
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
+            sock.bind((self.UDP_IP, self.UDP_PORT))
+            sock.settimeout(5)
+        except Exception as e:
+            LOG.error(e)
+            LOG.info('Socket Connection Failed')
+            terminate = True
+        LOG.info('Connecting to Aurora at: ' + self.IPstring + " : " + self.tokenString)
         my_aurora = Aurora(self.IPstring, self.tokenString)  # IP address and key for nanoleaf Aurora
         my_aurora.on = True  # Turn nanoleaf on
         my_aurora.brightness = 50  # set brightness
         sleep(1)
-        sock.settimeout(5)
         LOG.info('Attempting to switch to cinema mode')
         try:
             strm = my_aurora.effect_stream()  # set nanoleaf to streaming mode
             LOG.info('Aurora Successfully switched to cinema mode')
-            while True:
+            while not terminate:
                 LOG.info('waiting for udp data')
                 try:
                     raw_data = sock.recvfrom(21)  # hyperion sends 3 bytes (R,G,B) for each configured light (3*7=21)
@@ -165,7 +171,12 @@ class NanoLeafSkill(MycroftSkill):
             LOG.error(e)
             LOG.info('Aurora Failed to launch cinema mode')
         my_aurora.on = False  # Turn nanoleaf off
-        sock.close()
+        try:
+            sock.close()
+            LOG.info('Socket Closed')
+        except Exception as e:
+            LOG.error(e)
+            LOG.info('Socket Closure Failed!')
         LOG.info("Nanoleaf Cinema Mode Ended: " + str(my_id))
 
     # Phrase: Enable nanoleaf cinema mode by starting the thread
