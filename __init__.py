@@ -108,11 +108,11 @@ class NanoLeafSkill(MycroftSkill):
         upper_panel = all_panels[len(all_panels) - 1]
         first_panel = panel_ids[0]
         last_panel = panel_ids[len(panel_ids) - 1]
-        LOG.info(all_panels)
-        LOG.info(lower_panel)
-        LOG.info(first_panel)
-        LOG.info(upper_panel)
-        LOG.info(last_panel)
+        # LOG.info(all_panels)
+        # LOG.info(lower_panel)
+        # LOG.info(first_panel)
+        # LOG.info(upper_panel)
+        # LOG.info(last_panel)
         try:
             LOG.info('Attempting to open the socket connection')
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
@@ -149,7 +149,8 @@ class NanoLeafSkill(MycroftSkill):
                         first_byte_index = panel_count * 3  # Red Index
                         second_byte_index = first_byte_index + 1  # Green Index
                         third_byte_index = second_byte_index + 1  # Blue Index
-                        int_panel_id = panel_ids[panel_count]  # This Panel ID ***could this not just be "Panel"
+                        # int_panel_id = panel_ids[panel_count]  # This Panel ID ***could this not just be "Panel"
+                        int_panel_id = each_panel
                         int_red_value = rgb_list[first_byte_index]
                         int_green_value = rgb_list[second_byte_index]
                         int_blue_value = rgb_list[third_byte_index]
@@ -191,6 +192,7 @@ class NanoLeafSkill(MycroftSkill):
         self.cinema_mode.idThread = threading.Thread(target=self.do_cinema_mode,
                                                      args=(self.cinema_mode.id, lambda: self.cinema_mode.idStop))
         self.cinema_mode.idThread.start()
+        self.speak_dialog("cinema.on")
 
     # Phrase: Disable nanoleaf cinema mode by stopping the thread
     @intent_handler(IntentBuilder('StopCinemaModeIntent').require('StopKeyword').require('DeviceKeyword').
@@ -199,6 +201,7 @@ class NanoLeafSkill(MycroftSkill):
         self.cinema_mode.id = 101
         self.cinema_mode.idStop = True
         self.cinema_mode.idThread.join()
+        self.speak_dialog("cinema.off")
 
     def handle_nano_leaf_get_token_intent(self, message):
         # retrieve the token from the nanoleaf
