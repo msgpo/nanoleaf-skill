@@ -132,10 +132,10 @@ class NanoLeafSkill(MycroftSkill):
         try:
             strm = my_aurora.effect_stream()  # set nanoleaf to streaming mode
             LOG.info('Aurora Successfully switched to cinema mode')
+            LOG.info('waiting for udp data')
             while True:
                 if not socket_open:
                     break
-                LOG.info('waiting for udp data')
                 try:
                     raw_data = sock.recvfrom(21)  # hyperion sends 3 bytes (R,G,B) for each configured light (3*7=21)
                     byte_data = bytearray(raw_data[0])  # retrieve hyperion byte array
@@ -162,7 +162,7 @@ class NanoLeafSkill(MycroftSkill):
                                 strm.panel_set(last_panel, int_red_value, int_green_value, int_blue_value)
                             else:
                                 strm.panel_set(int_panel_id, int_red_value, int_green_value, int_blue_value)  # set the current panel color
-                                panel_count += 1  # next panel
+                        panel_count += 1  # next panel
                 except Exception as e:
                     LOG.error(e)
                     LOG.info('Socket Timeout Error - No Data Received')
