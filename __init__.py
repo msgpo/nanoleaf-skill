@@ -121,6 +121,7 @@ class NanoLeafSkill(MycroftSkill):
         my_aurora.brightness = 50  # set brightness
         sleep(1)
         sock.settimeout(5)
+        LOG.info('Attempting to switch to cinema mode')
         try:
             strm = my_aurora.effect_stream()  # set nanoleaf to streaming mode
             LOG.info('Aurora Successfully switched to cinema mode')
@@ -135,7 +136,7 @@ class NanoLeafSkill(MycroftSkill):
                     for each_panel in panel_ids:  # itterate through the configured PanleID's above
                         # Todo - Determine if I can use Panel instead of PanelID's
                         # Todo - If we can use Panel then the PanelCount should not be required
-                        LOG.info('Panel: ' + str(each_panel) + " - Panel ID:" + str(panel_ids[panel_count]))
+                        # LOG.info('Panel: ' + str(each_panel) + " - Panel ID:" + str(panel_ids[panel_count]))
                         first_byte_index = panel_count * 3  # Red Index
                         second_byte_index = first_byte_index + 1  # Green Index
                         third_byte_index = second_byte_index + 1  # Blue Index
@@ -164,6 +165,7 @@ class NanoLeafSkill(MycroftSkill):
             LOG.error(e)
             LOG.info('Aurora Failed to launch cinema mode')
         my_aurora.on = False  # Turn nanoleaf off
+        sock.close()
         LOG.info("Nanoleaf Cinema Mode Ended: " + str(my_id))
 
     # Phrase: Enable nanoleaf cinema mode by starting the thread
