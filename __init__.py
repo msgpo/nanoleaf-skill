@@ -114,14 +114,15 @@ class NanoLeafSkill(MycroftSkill):
         LOG.info(upper_panel)
         LOG.info(last_panel)
         try:
-            LOG.info('Attempting to open the socket conneciton')
+            LOG.info('Attempting to open the socket connection')
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
             sock.bind((self.UDP_IP, self.UDP_PORT))
             sock.settimeout(5)
+            socket_open = True
         except Exception as e:
             LOG.error(e)
             LOG.info('Socket Connection Failed')
-            terminate = True
+            socket_open = False
         LOG.info('Connecting to Aurora at: ' + self.IPstring + " : " + self.tokenString)
         my_aurora = Aurora(self.IPstring, self.tokenString)  # IP address and key for nanoleaf Aurora
         my_aurora.on = True  # Turn nanoleaf on
@@ -131,7 +132,9 @@ class NanoLeafSkill(MycroftSkill):
         try:
             strm = my_aurora.effect_stream()  # set nanoleaf to streaming mode
             LOG.info('Aurora Successfully switched to cinema mode')
-            while not terminate:
+            while True:
+                if not socket_open:
+                    break
                 LOG.info('waiting for udp data')
                 try:
                     raw_data = sock.recvfrom(21)  # hyperion sends 3 bytes (R,G,B) for each configured light (3*7=21)
