@@ -149,8 +149,8 @@ class NanoLeafSkill(MycroftSkill):
                         first_byte_index = panel_count * 3  # Red Index
                         second_byte_index = first_byte_index + 1  # Green Index
                         third_byte_index = second_byte_index + 1  # Blue Index
-                        # int_panel_id = panel_ids[panel_count]  # This Panel ID ***could this not just be "Panel"
-                        int_panel_id = each_panel
+                        int_panel_id = panel_ids[panel_count]  # This Panel ID ***could this not just be "Panel"
+                        # int_panel_id = each_panel
                         int_red_value = rgb_list[first_byte_index]
                         int_green_value = rgb_list[second_byte_index]
                         int_blue_value = rgb_list[third_byte_index]
