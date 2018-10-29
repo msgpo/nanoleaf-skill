@@ -254,6 +254,7 @@ class NanoLeafSkill(MycroftSkill):
             if scene_match:
                 self.set_scene(each_scene)
                 LOG.info('Scene Found!')
+                self.speak_dialog("light.set", data={"result": str(each_scene) + ", scene"})
                 break
         if not scene_match:
             LOG.info('Scene not Found!')
