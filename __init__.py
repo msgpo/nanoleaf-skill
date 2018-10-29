@@ -232,8 +232,9 @@ class NanoLeafSkill(MycroftSkill):
         return my_effects
 
     def set_scene(self, scene_name):
+        LOG.info('Attempting to set scene: ' + scene_name)
         MyPanels = Aurora(self.IPstring, self.tokenString)
-        MyPanels.effect(scene_name)
+        MyPanels.effect(str(scene_name))
 
 
     def handle_nano_leaf_dim_intent(self, message):
@@ -242,13 +243,13 @@ class NanoLeafSkill(MycroftSkill):
         self.speak_dialog("light.dim")
 
     def handle_nano_leaf_set_intent(self, message):
-        str_remainder = str(message.utterance_remainder())
+        str_remainder = str(message.utterance_remainder()).lower()
         message_words = []
         scene_words = []
         scene_match = False
         message_words = str_remainder.split()
         for each_scene in self.retrieve_scenes():
-            scene_words = re.findall(r"\w+", str(each_scene))
+            scene_words = re.findall(r"\w+", str(each_scene).lower())
             LOGGER.info('List Compare: ' + str(message_words) + ' : ' + str(each_scene))
             scene_match = bool(set(message_words).intersection(scene_words))
             if scene_match:
