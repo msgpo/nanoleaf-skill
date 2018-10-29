@@ -234,7 +234,7 @@ class NanoLeafSkill(MycroftSkill):
     def set_scene(self, scene_name):
         LOG.info('Attempting to set scene: ' + scene_name)
         MyPanels = Aurora(self.IPstring, self.tokenString)
-        MyPanels.effect(str(scene_name))
+        MyPanels.effect = scene_name
 
 
     def handle_nano_leaf_dim_intent(self, message):
