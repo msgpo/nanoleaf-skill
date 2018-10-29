@@ -231,6 +231,11 @@ class NanoLeafSkill(MycroftSkill):
         my_effects = MyPanels.effects_list
         return my_effects
 
+    def set_scene(self, scene_name):
+        MyPanels = Aurora(self.IPstring, self.tokenString)
+        MyPanels.effect(scene_name)
+
+
     def handle_nano_leaf_dim_intent(self, message):
         MyPanels = Aurora(self.IPstring, self.tokenString)
         MyPanels.brightness = 5
@@ -238,25 +243,38 @@ class NanoLeafSkill(MycroftSkill):
 
     def handle_nano_leaf_set_intent(self, message):
         str_remainder = str(message.utterance_remainder())
-        LOG.info(self.retrieve_scenes())
-        for findcolor in Valid_Color:
-            mypos = str_remainder.find(findcolor)
-            if mypos > 0:
-                if findcolor == 'read':
-                    findcolor = 'red'
-                if findcolor == 'toronto':
-                    myRed = 0
-                    myGreen = 62
-                    myBlue = 126
-                else:
-                    myRed = math.trunc(Color(findcolor).get_red() * 255)
-                    myGreen = math.trunc(Color(findcolor).get_green() * 255)
-                    myBlue = math.trunc(Color(findcolor).get_blue() * 255)
-                myHex = Color(findcolor).hex_l
-                self.speak_dialog("light.set", data ={"result": findcolor})
-                MyPanels = Aurora(self.IPstring, self.tokenString)
-                MyPanels.rgb = myHex[1:]
+        message_words = []
+        scene_words = []
+        scene_match = False
+        message_words = str_remainder.split()
+        for each_scene in self.retrieve_scenes():
+            scene_words = re.findall(r"\w+", str(each_scene))
+            LOGGER.info('List Compare: ' + str(message_words) + ' : ' + str(each_scene))
+            scene_match = bool(set(message_words).intersection(scene_words))
+            if scene_match:
+                self.set_scene(each_scene)
+                LOG.info('Scene Found!')
                 break
+        if not scene_match:
+            LOG.info('Scene not Found!')
+            for findcolor in Valid_Color:
+                mypos = str_remainder.find(findcolor)
+                if mypos > 0:
+                    if findcolor == 'read':
+                        findcolor = 'red'
+                    if findcolor == 'toronto':
+                        myRed = 0
+                        myGreen = 62
+                        myBlue = 126
+                    else:
+                        myRed = math.trunc(Color(findcolor).get_red() * 255)
+                        myGreen = math.trunc(Color(findcolor).get_green() * 255)
+                        myBlue = math.trunc(Color(findcolor).get_blue() * 255)
+                    myHex = Color(findcolor).hex_l
+                    self.speak_dialog("light.set", data={"result": findcolor})
+                    MyPanels = Aurora(self.IPstring, self.tokenString)
+                    MyPanels.rgb = myHex[1:]
+                    break
         dim_level = re.findall('\d+', str_remainder)
         if dim_level:
             MyPanels = Aurora(self.IPstring, self.tokenString)
