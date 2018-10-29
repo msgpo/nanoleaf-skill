@@ -226,6 +226,11 @@ class NanoLeafSkill(MycroftSkill):
         MyPanels.on = False
         self.speak_dialog("light.off")
 
+    def retrieve_scenes(self):
+        MyPanels = Aurora(self.IPstring, self.tokenString)
+        my_effects = MyPanels.effects_list
+        return my_effects
+
     def handle_nano_leaf_dim_intent(self, message):
         MyPanels = Aurora(self.IPstring, self.tokenString)
         MyPanels.brightness = 5
@@ -233,6 +238,7 @@ class NanoLeafSkill(MycroftSkill):
 
     def handle_nano_leaf_set_intent(self, message):
         str_remainder = str(message.utterance_remainder())
+        LOG.info(self.retrieve_scenes())
         for findcolor in Valid_Color:
             mypos = str_remainder.find(findcolor)
             if mypos > 0:
