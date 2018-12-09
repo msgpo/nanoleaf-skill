@@ -59,27 +59,27 @@ class NanoLeafSkill(MycroftSkill):
 
         nano_leaf_on_intent = IntentBuilder("NanoLeafOnIntent").\
             require("DeviceKeyword").require("OnKeyword").\
-            optionally("LightKeyword").build()
+            optionally("LightKeyword").optionally("SilentKeyword").build()
         self.register_intent(nano_leaf_on_intent, self.handle_nano_leaf_on_intent)
 
         nano_leaf_off_intent = IntentBuilder("NanoLeafOffIntent").\
             require("DeviceKeyword").require("OffKeyword").\
-            optionally("LightKeyword").build()
+            optionally("LightKeyword").optionally("SilentKeyword").build()
         self.register_intent(nano_leaf_off_intent, self.handle_nano_leaf_off_intent)
 
         nano_leaf_dim_intent = IntentBuilder("NanoLeafDimIntent").\
             require("DimKeyword").require("DeviceKeyword").\
-            optionally("LightKeyword").build()
+            optionally("LightKeyword").optionally("SilentKeyword").build()
         self.register_intent(nano_leaf_dim_intent, self.handle_nano_leaf_dim_intent)
 
         nano_leaf_set_intent = IntentBuilder("NanoLeafSetIntent").\
             require("SetKeyword").require("DeviceKeyword").\
-            optionally("Lightkeyword").build()
+            optionally("Lightkeyword").optionally("SilentKeyword").build()
         self.register_intent(nano_leaf_set_intent, self.handle_nano_leaf_set_intent)
 
         nano_leaf_get_token_intent = IntentBuilder("NanoLeafGetTokenIntent").\
             require('GetKeyword').require("DeviceKeyword").\
-            require('TokenKeyword').build()
+            require('TokenKeyword').optionally("SilentKeyword").build()
         self.register_intent(nano_leaf_get_token_intent, self.handle_nano_leaf_get_token_intent)
 
     def on_websettings_changed(self):
@@ -204,27 +204,34 @@ class NanoLeafSkill(MycroftSkill):
         self.speak_dialog("cinema.off")
 
     def handle_nano_leaf_get_token_intent(self, message):
+        silent_kw = message.data.get("SilentKeyword")
         # retrieve the token from the nanoleaf
         try:
             token = setup.generate_auth_token(self.settings["ipstring"])
         except Exception as e:
             LOG.error(e)
             token = "Not Found"
-            self.speak("The Token Was Not Found!")
+            if not silent_kw:
+                self.speak("The Token Was Not Found!")
         self.settings["tokenstring"] = str(token)
         if token != "Not Found":
-            self.speak('I have retrieved a new token')
+            if not silent_kw:
+                self.speak('I have retrieved a new token')
 
     def handle_nano_leaf_on_intent(self, message):
+        silent_kw = message.data.get("SilentKeyword")
         MyPanels = Aurora(self.IPstring, self.tokenString)
         MyPanels.on = True
         MyPanels.brightness = 100
-        self.speak_dialog("light.on")
+        if not silent_kw:
+            self.speak_dialog("light.on")
 
     def handle_nano_leaf_off_intent(self, message):
+        silent_kw = message.data.get("SilentKeyword")
         MyPanels = Aurora(self.IPstring, self.tokenString)
         MyPanels.on = False
-        self.speak_dialog("light.off")
+        if not silent_kw:
+            self.speak_dialog("light.off")
 
     def retrieve_scenes(self):
         MyPanels = Aurora(self.IPstring, self.tokenString)
@@ -238,11 +245,13 @@ class NanoLeafSkill(MycroftSkill):
 
 
     def handle_nano_leaf_dim_intent(self, message):
+        silent_kw = message.data.get("SilentKeyword")
         MyPanels = Aurora(self.IPstring, self.tokenString)
         MyPanels.brightness = 5
         self.speak_dialog("light.dim")
 
     def handle_nano_leaf_set_intent(self, message):
+        silent_kw = message.data.get("SilentKeyword")
         str_remainder = str(message.utterance_remainder()).lower()
         message_words = []
         scene_words = []
@@ -255,7 +264,8 @@ class NanoLeafSkill(MycroftSkill):
             if scene_match:
                 self.set_scene(each_scene)
                 LOG.info('Scene Found!')
-                self.speak_dialog("light.set", data={"result": str(each_scene) + ", scene"})
+                if not silent_kw:
+                    self.speak_dialog("light.set", data={"result": str(each_scene) + ", scene"})
                 break
         if not scene_match:
             LOG.info('Scene not Found!')
@@ -273,7 +283,8 @@ class NanoLeafSkill(MycroftSkill):
                         myGreen = math.trunc(Color(findcolor).get_green() * 255)
                         myBlue = math.trunc(Color(findcolor).get_blue() * 255)
                     myHex = Color(findcolor).hex_l
-                    self.speak_dialog("light.set", data={"result": findcolor})
+                    if not silent_kw:
+                        self.speak_dialog("light.set", data={"result": findcolor})
                     MyPanels = Aurora(self.IPstring, self.tokenString)
                     MyPanels.rgb = myHex[1:]
                     break
@@ -281,7 +292,8 @@ class NanoLeafSkill(MycroftSkill):
         if dim_level:
             MyPanels = Aurora(self.IPstring, self.tokenString)
             MyPanels.brightness = int(dim_level[0])
-            self.speak_dialog("light.set", data={"result": str(dim_level[0]) + ", percent"})
+            if not silent_kw:
+                self.speak_dialog("light.set", data={"result": str(dim_level[0]) + ", percent"})
 
     # The "stop" method defines what Mycroft does when told to stop during
     # the skill's execution. In this case, since the skill's functionality
