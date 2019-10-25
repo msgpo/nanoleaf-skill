@@ -232,17 +232,18 @@ class NanoLeafSkill(MycroftSkill):
         # retrieve the token from the nanoleaf
         try:
             token = setup.generate_auth_token(self.settings["ipstring"])
+            LOG.info("Retrieved Aurora Token: " + token)
         except Exception as e:
             LOG.error(e)
             token = "Not Found"
             if not silent_kw:
                 self.speak("The Token Was Not Found!")
+                self.speak_dialog("token.response")
         self.settings["tokenstring"] = str(token)
         if token != "Not Found":
             if not silent_kw:
                 self.speak('I have retrieved a new token')
-        else:
-            self.speak_dialog("token.response")
+
 
     def handle_nano_leaf_on_intent(self, message):
         silent_kw = message.data.get("SilentKeyword")
