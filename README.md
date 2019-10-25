@@ -19,6 +19,9 @@ platform_picroft
 - [nanoleaf lighting](https://nanoleaf.me/en-ca/)
 ## Further Reading
 - 
+## Special Features (streaming mode)
+* "start aurora streaming mode"
+--This will only work if hyperion has been configured to supply streaming data to this software
 ## Current state
 Working features:
  - under development

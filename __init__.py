@@ -12,6 +12,7 @@ from mycroft.util.log import LOG
 
 from nanoleaf import Aurora  # https://github.com/pcwii/nanoleaf.git
 from nanoleaf import setup
+from ifaddr import get_adapters
 
 import threading
 import socket
@@ -46,7 +47,7 @@ class NanoLeafSkill(MycroftSkill):
         self.cinema_mode = self.NewThread
         self.IPstring = ""
         self.tokenString = ""
-        self.UDP_IP = "192.168.0.41"  #0.41 Kelsey.ai This should be the IP address of the machine the code is running on (mycroft)
+        self.UDP_IP = ""  #0.41 Kelsey.ai This should be the IP address of the machine the code is running on (mycroft)
         self.UDP_PORT = 20450
 
     # This method loads the files needed for the skill's functioning, and
@@ -57,15 +58,16 @@ class NanoLeafSkill(MycroftSkill):
         self.settings.set_changed_callback(self.on_websettings_changed)
         self.on_websettings_changed()
 
-        nano_leaf_on_intent = IntentBuilder("NanoLeafOnIntent").\
-            require("DeviceKeyword").require("OnKeyword").\
-            optionally("LightKeyword").optionally("SilentKeyword").build()
-        self.register_intent(nano_leaf_on_intent, self.handle_nano_leaf_on_intent)
+## On and off were disabled as this can be handled from home assistant now 20191025
+#        nano_leaf_on_intent = IntentBuilder("NanoLeafOnIntent").\
+#            require("DeviceKeyword").require("OnKeyword").\
+#            optionally("LightKeyword").optionally("SilentKeyword").build()
+#        self.register_intent(nano_leaf_on_intent, self.handle_nano_leaf_on_intent)
 
-        nano_leaf_off_intent = IntentBuilder("NanoLeafOffIntent").\
-            require("DeviceKeyword").require("OffKeyword").\
-            optionally("LightKeyword").optionally("SilentKeyword").build()
-        self.register_intent(nano_leaf_off_intent, self.handle_nano_leaf_off_intent)
+#        nano_leaf_off_intent = IntentBuilder("NanoLeafOffIntent").\
+#            require("DeviceKeyword").require("OffKeyword").\
+#            optionally("LightKeyword").optionally("SilentKeyword").build()
+#        self.register_intent(nano_leaf_off_intent, self.handle_nano_leaf_off_intent)
 
         nano_leaf_dim_intent = IntentBuilder("NanoLeafDimIntent").\
             require("DimKeyword").require("DeviceKeyword").\
@@ -94,6 +96,24 @@ class NanoLeafSkill(MycroftSkill):
             except Exception as e:
                 LOG.error(e)
 
+    def get_ifaces(ignore_list=None):
+        """ Build a dict with device names and their associated ip address.
+        Arguments:
+            ignore_list(list): list of devices to ignore. Defaults to "lo"
+        Returns:
+            (dict) with device names as keys and ip addresses as value.
+        """
+        ignore_list = ignore_list or ['lo']
+        res = {}
+        for iface in get_adapters():
+            # ignore "lo" (the local loopback)
+            if iface.ips and iface.name not in ignore_list:
+                for addr in iface.ips:
+                    if addr.is_IPv4:
+                        res[iface.nice_name] = addr.ip
+                        break
+        return res
+
     def get_panels(self):
         all_panels = Aurora(self.IPstring, self.tokenString)
         all_panel_ids = [x['panelId'] for x in all_panels.panel_positions]
@@ -101,6 +121,13 @@ class NanoLeafSkill(MycroftSkill):
         return all_panel_ids
 
     def do_cinema_mode(self, my_id, terminate):
+        addr = self.get_ifaces()
+        if len(addr) == 0:
+            LOG.info("no UDP network connection detected")
+        elif len(addr) == 1:
+            iface, my_ip = addr.popitem()
+            LOG.info("UDP network connection found")
+            self.UDP_IP = my_ip
         LOG.info("Starting Nanoleaf Cinema Mode: " + str(my_id))
         all_panels = self.get_panels()
         panel_ids = all_panels[1:-1]
@@ -108,11 +135,6 @@ class NanoLeafSkill(MycroftSkill):
         upper_panel = all_panels[len(all_panels) - 1]
         first_panel = panel_ids[0]
         last_panel = panel_ids[len(panel_ids) - 1]
-        # LOG.info(all_panels)
-        # LOG.info(lower_panel)
-        # LOG.info(first_panel)
-        # LOG.info(upper_panel)
-        # LOG.info(last_panel)
         try:
             LOG.info('Attempting to open the socket connection')
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
