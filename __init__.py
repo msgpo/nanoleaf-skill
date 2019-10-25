@@ -41,8 +41,8 @@ class NanoLeafSkill(MycroftSkill):
     # The constructor of the skill, which calls MycroftSkill's constructor
     def __init__(self):
         super(NanoLeafSkill, self).__init__(name="NanoLeafSkill")
-        #self.settings["ipstring"] = ""
-        #self.settings["tokenstring"] = ""
+        self.settings["ipstring"] = ""
+        self.settings["tokenstring"] = ""
         self._is_setup = False
         self.cinema_mode = self.NewThread
         self.IPstring = ""
@@ -89,13 +89,13 @@ class NanoLeafSkill(MycroftSkill):
         LOG.info('Websettings have changed! Updating path data')
         self.IPstring = self.settings.get("ipstring", "")
         self.tokenString = self.settings.get("tokenstring", "")
-        try:
-            if self.IPstring and self.tokenString:
-                self.IPstring = self.settings["ipstring"]
-                self.tokenString = self.settings["tokenstring"]
-                self._is_setup = True
-        except Exception as e:
-            LOG.error(e)
+        # try:
+        #     if self.IPstring and self.tokenString:
+        #         self.IPstring = self.settings["ipstring"]
+        #         self.tokenString = self.settings["tokenstring"]
+        #         self._is_setup = True
+        # except Exception as e:
+        #     LOG.error(e)
 
     def get_ifaces(ignore_list=None):
         """ Build a dict with device names and their associated ip address.
