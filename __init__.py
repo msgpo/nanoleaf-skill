@@ -241,6 +241,8 @@ class NanoLeafSkill(MycroftSkill):
         if token != "Not Found":
             if not silent_kw:
                 self.speak('I have retrieved a new token')
+        else:
+            self.speak_dialog("token.response")
 
     def handle_nano_leaf_on_intent(self, message):
         silent_kw = message.data.get("SilentKeyword")
