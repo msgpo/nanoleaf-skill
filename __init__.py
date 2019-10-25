@@ -86,6 +86,7 @@ class NanoLeafSkill(MycroftSkill):
 
     def on_websettings_changed(self):
         #if not self._is_setup:
+        LOG.info('Websettings have changed! Updating path data')
         self.IPstring = self.settings.get("ipstring", "")
         self.tokenString = self.settings.get("tokenstring", "")
         try:
