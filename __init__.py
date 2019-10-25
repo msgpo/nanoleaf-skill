@@ -257,8 +257,10 @@ class NanoLeafSkill(MycroftSkill):
             self.speak_dialog("light.off")
 
     def retrieve_scenes(self):
+        LOG.info("Retrieving Aurora Scenes at: " + self.IPstring,)
         MyPanels = Aurora(self.IPstring, self.tokenString)
         my_effects = MyPanels.effects_list
+        LOG.info("Found Aurora Effects: " + my_effects)
         return my_effects
 
     def set_scene(self, scene_name):
