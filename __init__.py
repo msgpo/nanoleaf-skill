@@ -89,6 +89,7 @@ class NanoLeafSkill(MycroftSkill):
         LOG.info('Websettings have changed! Updating path data')
         self.IPstring = self.settings.get("ipstring", "")
         self.tokenString = self.settings.get("tokenstring", "")
+        LOG.info(self.IPstring)
         # try:
         #     if self.IPstring and self.tokenString:
         #         self.IPstring = self.settings["ipstring"]
