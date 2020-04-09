@@ -55,7 +55,8 @@ class NanoLeafSkill(MycroftSkill):
     def initialize(self):
         self.load_data_files(dirname(__file__))
         # Check and then monitor for credential changes
-        self.settings.set_changed_callback(self.on_websettings_changed)
+        #self.settings.set_changed_callback(self.on_websettings_changed)
+        self.settings_change_callback = self.on_websettings_changed
         self.on_websettings_changed()
 
 ## On and off were disabled as this can be handled from home assistant now 20191025
